@@ -1,0 +1,1537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="ReComp" />
+    <meta name="theme-color" content="#0a0a0f" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>ReComp</title>
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #13131c;
+        --surface2: #1c1c28;
+        --border: #252535;
+        --text: #f0f0f8;
+        --muted: #6b6b8a;
+        --dim: #3a3a50;
+        --red: #ff4d2e;
+        --blue: #3d8ef0;
+        --green: #2ecc71;
+        --gold: #f5a623;
+        --purple: #a855f7;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bot: env(safe-area-inset-bottom, 0px);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      }
+
+      /* Layout */
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      #screen {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(72px + var(--safe-bot));
+      }
+      #nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(64px + var(--safe-bot));
+        padding-bottom: var(--safe-bot);
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        display: flex;
+        z-index: 100;
+      }
+      .nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.15s;
+        padding-top: 8px;
+      }
+      .nav-btn.active {
+        color: var(--red);
+      }
+      .nav-btn svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      /* Page header */
+      .page-header {
+        padding: calc(var(--safe-top) + 16px) 20px 12px;
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--border);
+      }
+      .page-title {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      .page-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .section {
+        padding: 16px 20px;
+      }
+      .section + .section {
+        border-top: 1px solid var(--border);
+      }
+      .label {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px 20px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .btn:active {
+        opacity: 0.75;
+      }
+      .btn-primary {
+        background: var(--red);
+        color: #fff;
+      }
+      .btn-ghost {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .btn-sm {
+        padding: 8px 14px;
+        font-size: 12px;
+        border-radius: 10px;
+      }
+      .btn-full {
+        width: 100%;
+      }
+
+      /* Input */
+      .input {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: var(--text);
+        font-size: 15px;
+        outline: none;
+        -webkit-appearance: none;
+      }
+      .input:focus {
+        border-color: var(--blue);
+      }
+      .input::placeholder {
+        color: var(--muted);
+      }
+
+      /* Tags */
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      /* Toast */
+      #toast {
+        position: fixed;
+        top: calc(var(--safe-top) + 16px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-80px);
+        background: var(--green);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 700;
+        z-index: 999;
+        transition: transform 0.3s ease;
+        white-space: nowrap;
+      }
+      #toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 200;
+        display: flex;
+        align-items: flex-end;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .modal-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .modal {
+        background: var(--surface);
+        border-radius: 24px 24px 0 0;
+        width: 100%;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 0 0 calc(20px + var(--safe-bot));
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+      .modal-overlay.open .modal {
+        transform: translateY(0);
+      }
+      .modal-handle {
+        width: 36px;
+        height: 4px;
+        background: var(--dim);
+        border-radius: 2px;
+        margin: 12px auto 16px;
+      }
+      .modal-header {
+        padding: 0 20px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .modal-body {
+        padding: 20px;
+      }
+
+      /* Progress ring */
+      .ring-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ring-label {
+        position: absolute;
+        text-align: center;
+      }
+
+      /* Calorie bar */
+      .cal-bar-bg {
+        height: 8px;
+        background: var(--surface2);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .cal-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.4s ease;
+      }
+
+      /* Meal entry */
+      .meal-entry {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .meal-entry:last-child {
+        border-bottom: none;
+      }
+      .meal-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* Exercise row */
+      .ex-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--surface2);
+        border-radius: 12px;
+        margin-bottom: 8px;
+      }
+      .ex-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+
+      /* Week/day pills */
+      .pill-row {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 0 20px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .pill-row::-webkit-scrollbar {
+        display: none;
+      }
+      .pill {
+        flex-shrink: 0;
+        padding: 8px 16px;
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: var(--muted);
+      }
+      .pill.active {
+        border-color: transparent;
+        color: #fff;
+      }
+
+      /* AI bubble */
+      .ai-bubble {
+        background: var(--surface2);
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #d0d0e8;
+        border: 1px solid var(--border);
+      }
+      .ai-thinking {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        padding: 4px 0;
+      }
+      .ai-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--blue);
+        animation: pulse 1.2s infinite;
+      }
+      .ai-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .ai-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes pulse {
+        0%,
+        80%,
+        100% {
+          opacity: 0.2;
+          transform: scale(0.8);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      /* Settings */
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .setting-row:last-child {
+        border-bottom: none;
+      }
+      .setting-label {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .setting-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .setting-val {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--blue);
+      }
+
+      /* Scrollable content */
+      .scroll-x {
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .scroll-x::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Utility */
+      .flex {
+        display: flex;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .items-center {
+        align-items: center;
+      }
+      .justify-between {
+        justify-content: space-between;
+      }
+      .gap-8 {
+        gap: 8px;
+      }
+      .gap-12 {
+        gap: 12px;
+      }
+      .mt-12 {
+        margin-top: 12px;
+      }
+      .mt-16 {
+        margin-top: 16px;
+      }
+      .mt-20 {
+        margin-top: 20px;
+      }
+      .p-20 {
+        padding: 20px;
+      }
+      .px-20 {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .text-red {
+        color: var(--red);
+      }
+      .text-blue {
+        color: var(--blue);
+      }
+      .text-green {
+        color: var(--green);
+      }
+      .text-gold {
+        color: var(--gold);
+      }
+      .text-muted {
+        color: var(--muted);
+      }
+      .bold {
+        font-weight: 700;
+      }
+      .text-sm {
+        font-size: 13px;
+      }
+      .text-xs {
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="screen"></div>
+      <nav id="nav">
+        <button
+          class="nav-btn active"
+          onclick="navigate('dashboard')"
+          id="nav-dashboard"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" onclick="navigate('workout')" id="nav-workout">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <path d="M6 5v14M18 5v14M3 9h3M18 9h3M3 15h3M18 15h3M6 9h12v6H6z" />
+          </svg>
+          Workout
+        </button>
+        <button
+          class="nav-btn"
+          onclick="navigate('calories')"
+          id="nav-calories"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" />
+            <circle cx="12" cy="9" r="2.5" />
+          </svg>
+          Calories
+        </button>
+        <button
+          class="nav-btn"
+          onclick="navigate('settings')"
+          id="nav-settings"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+            />
+          </svg>
+          Settings
+        </button>
+      </nav>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Food Confirm Modal -->
+    <div class="modal-overlay" id="food-modal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div class="modal-title" id="food-modal-title">Confirm Food</div>
+          <div class="text-sm text-muted mt-12" id="food-modal-sub"></div>
+        </div>
+        <div class="modal-body">
+          <div id="food-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workout Detail Modal -->
+    <div class="modal-overlay" id="workout-modal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div id="wm-tag" class="tag text-xs" style="margin-bottom: 8px"></div>
+          <div class="modal-title" id="wm-title"></div>
+          <div class="text-sm text-muted" style="margin-top: 4px">
+            1hr · 30min lift · 20min cardio · 10min sauna
+          </div>
+        </div>
+        <div class="modal-body" id="wm-body"></div>
+      </div>
+    </div>
+
+    <!-- Settings Goal Modal -->
+    <div class="modal-overlay" id="goal-modal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div class="modal-title">Set Daily Calorie Goal</div>
+        </div>
+        <div class="modal-body">
+          <input
+            class="input"
+            type="number"
+            id="goal-input"
+            placeholder="e.g. 2100"
+            style="font-size: 22px; font-weight: 800; text-align: center"
+          />
+          <div class="text-sm text-muted mt-12" style="text-align: center">
+            Recommended for your goal: 2,000 – 2,300 cal/day
+          </div>
+          <button class="btn btn-primary btn-full mt-16" onclick="saveGoal()">
+            Save Goal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─── DATA ───────────────────────────────────────────────────────────────────
+
+      const GROUPS = {
+        chest: { label: "Chest & Triceps", icon: "💪", color: "#ff4d2e" },
+        back: { label: "Back & Biceps", icon: "🏋️", color: "#3d8ef0" },
+        legs: { label: "Legs", icon: "🦵", color: "#2ecc71" },
+        shoulders: { label: "Shoulders", icon: "🔝", color: "#a855f7" },
+        arms: { label: "Arms & Core", icon: "💥", color: "#f5a623" },
+      };
+
+      const EXERCISES = {
+        chest: {
+          A: [
+            { n: "Barbell Bench Press", s: "4x8-10", r: "90s" },
+            { n: "Incline Dumbbell Press", s: "3x10-12", r: "75s" },
+            { n: "Cable Chest Fly", s: "3x12-15", r: "60s" },
+            { n: "Weighted Dips", s: "3x10", r: "75s" },
+            { n: "Tricep Rope Pushdown", s: "3x12-15", r: "60s" },
+            { n: "Overhead Tricep Extension", s: "3x12", r: "60s" },
+          ],
+          B: [
+            { n: "Dumbbell Bench Press", s: "4x10-12", r: "90s" },
+            { n: "Decline Press Machine", s: "3x10-12", r: "75s" },
+            { n: "Pec Deck Fly", s: "3x12-15", r: "60s" },
+            { n: "Close-Grip Bench Press", s: "3x10", r: "75s" },
+            { n: "Tricep Bar Pushdown", s: "3x12-15", r: "60s" },
+            { n: "Single-Arm Kickback", s: "3x12", r: "60s" },
+          ],
+        },
+        back: {
+          A: [
+            { n: "Deadlift", s: "4x6-8", r: "120s" },
+            { n: "Lat Pulldown (wide)", s: "4x10-12", r: "75s" },
+            { n: "Seated Cable Row", s: "3x10-12", r: "75s" },
+            { n: "Single-Arm DB Row", s: "3x10ea", r: "60s" },
+            { n: "Barbell Curl", s: "3x10-12", r: "60s" },
+            { n: "Hammer Curl", s: "3x12", r: "60s" },
+          ],
+          B: [
+            { n: "Romanian Deadlift", s: "4x8-10", r: "90s" },
+            { n: "Lat Pulldown (neutral)", s: "4x10-12", r: "75s" },
+            { n: "T-Bar Row", s: "3x10-12", r: "75s" },
+            { n: "Face Pull", s: "3x15", r: "60s" },
+            { n: "Incline DB Curl", s: "3x12", r: "60s" },
+            { n: "Concentration Curl", s: "3x12ea", r: "60s" },
+          ],
+        },
+        legs: {
+          A: [
+            { n: "Barbell Squat", s: "4x8-10", r: "120s" },
+            { n: "Leg Press", s: "4x10-12", r: "90s" },
+            { n: "Romanian Deadlift", s: "3x10-12", r: "75s" },
+            { n: "Seated Leg Curl", s: "3x12-15", r: "60s" },
+            { n: "Leg Extension", s: "3x12-15", r: "60s" },
+            { n: "Standing Calf Raise", s: "4x15-20", r: "60s" },
+          ],
+          B: [
+            { n: "Goblet Squat", s: "4x10-12", r: "90s" },
+            { n: "Hack Squat Machine", s: "4x10-12", r: "90s" },
+            { n: "Walking Lunges", s: "3x12ea", r: "75s" },
+            { n: "Lying Leg Curl", s: "3x12-15", r: "60s" },
+            { n: "Sumo Squat", s: "3x12", r: "75s" },
+            { n: "Seated Calf Raise", s: "4x15-20", r: "60s" },
+          ],
+        },
+        shoulders: {
+          A: [
+            { n: "Barbell Overhead Press", s: "4x8-10", r: "90s" },
+            { n: "Dumbbell Lateral Raise", s: "4x12-15", r: "60s" },
+            { n: "Front Raise", s: "3x12", r: "60s" },
+            { n: "Reverse Pec Deck", s: "3x15", r: "60s" },
+            { n: "Dumbbell Shrug", s: "3x15", r: "60s" },
+            { n: "Arnold Press", s: "3x10-12", r: "75s" },
+          ],
+          B: [
+            { n: "DB Shoulder Press", s: "4x10-12", r: "90s" },
+            { n: "Cable Lateral Raise", s: "4x12-15", r: "60s" },
+            { n: "Upright Row", s: "3x12", r: "60s" },
+            { n: "Bent-Over Rear Delt Fly", s: "3x15", r: "60s" },
+            { n: "Barbell Shrug", s: "3x15", r: "60s" },
+            { n: "Machine Shoulder Press", s: "3x10-12", r: "75s" },
+          ],
+        },
+        arms: {
+          A: [
+            { n: "EZ-Bar Curl", s: "3x10-12", r: "60s" },
+            { n: "Skull Crushers", s: "3x10-12", r: "60s" },
+            { n: "Cable Curl", s: "3x12-15", r: "60s" },
+            { n: "Plank", s: "3x45-60s", r: "45s" },
+            { n: "Cable Crunch", s: "3x15", r: "60s" },
+            { n: "Hanging Leg Raise", s: "3x12-15", r: "60s" },
+          ],
+          B: [
+            { n: "Preacher Curl", s: "3x10-12", r: "60s" },
+            { n: "Overhead Tricep Extension", s: "3x12", r: "60s" },
+            { n: "Spider Curl", s: "3x12", r: "60s" },
+            { n: "Ab Wheel Rollout", s: "3x10-12", r: "60s" },
+            { n: "Russian Twist", s: "3x20", r: "45s" },
+            { n: "Decline Crunch", s: "3x15", r: "60s" },
+          ],
+        },
+      };
+
+      const CARDIO = [
+        "Treadmill – incline walk 3.5-4mph",
+        "Stationary Bike – moderate resistance",
+        "Elliptical – steady pace",
+        "Stairmaster – low-medium intensity",
+        "Rowing Machine – steady pace",
+      ];
+
+      // Mon=chest, Tue=back, Wed=legs, Thu=shoulders, Fri=arms
+      const DAY_KEYS = [
+        null,
+        "chest",
+        "back",
+        "legs",
+        "shoulders",
+        "arms",
+        null,
+      ];
+      const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const MEAL_CATS = ["Breakfast", "Lunch", "Dinner", "Snack"];
+      const MEAL_COLORS = ["#f5a623", "#3d8ef0", "#a855f7", "#2ecc71"];
+
+      // ─── STATE ───────────────────────────────────────────────────────────────────
+
+      const S = {
+        page: "dashboard",
+        week: 0, // 0-3
+        dayOfWeek: new Date().getDay(),
+        calorieGoal: parseInt(localStorage.getItem("calGoal") || "2100"),
+        meals: JSON.parse(localStorage.getItem("meals") || "{}"), // {dateKey: [{name,cal,cat}]}
+        workoutsDone: JSON.parse(localStorage.getItem("wdone") || "{}"),
+        foodSearch: "",
+        foodResults: null,
+        pendingFood: null,
+        aiThinking: false,
+      };
+
+      function todayKey() {
+        return new Date().toISOString().split("T")[0];
+      }
+      function todayMeals() {
+        return S.meals[todayKey()] || [];
+      }
+      function todayCalories() {
+        return todayMeals().reduce((a, m) => a + m.cal, 0);
+      }
+      function saveMeals() {
+        localStorage.setItem("meals", JSON.stringify(S.meals));
+      }
+      function saveGoal() {
+        const v = parseInt(document.getElementById("goal-input").value);
+        if (v > 0) {
+          S.calorieGoal = v;
+          localStorage.setItem("calGoal", v);
+          closeModal("goal-modal");
+          render();
+          toast("Calorie goal updated!");
+        }
+      }
+
+      // ─── NAVIGATION ──────────────────────────────────────────────────────────────
+
+      function navigate(page) {
+        S.page = page;
+        document
+          .querySelectorAll(".nav-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("nav-" + page).classList.add("active");
+        render();
+        document.getElementById("screen").scrollTop = 0;
+      }
+
+      // ─── MODALS ──────────────────────────────────────────────────────────────────
+
+      function openModal(id) {
+        document.getElementById(id).classList.add("open");
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("open");
+      }
+      document.querySelectorAll(".modal-overlay").forEach((o) => {
+        o.addEventListener("click", (e) => {
+          if (e.target === o) closeModal(o.id);
+        });
+      });
+
+      // ─── TOAST ───────────────────────────────────────────────────────────────────
+
+      function toast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+      }
+
+      // ─── WORKOUT MODAL ───────────────────────────────────────────────────────────
+
+      function openWorkout(weekNum, dow) {
+        const key = DAY_KEYS[dow];
+        if (!key) return;
+        const g = GROUPS[key];
+        const variant = weekNum % 2 === 0 ? "A" : "B";
+        const exs = EXERCISES[key][variant];
+        const cardio = CARDIO[(weekNum * 5 + dow) % CARDIO.length];
+        const dateKey = `w${weekNum}d${dow}`;
+
+        document.getElementById("wm-tag").textContent =
+          `Week ${weekNum + 1} · ${DAY_NAMES[dow]} · ${variant === "B" ? "Alt Routine" : "Primary"}`;
+        document.getElementById("wm-tag").style.background = g.color + "22";
+        document.getElementById("wm-tag").style.color = g.color;
+        document.getElementById("wm-title").textContent =
+          `${g.icon} ${g.label}`;
+
+        const done = S.workoutsDone[dateKey];
+
+        document.getElementById("wm-body").innerHTML = `
+    <div style="margin-bottom:16px">
+      <div class="label">Session Timeline</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${[
+          {
+            t: "0:00–0:30",
+            l: "Strength Training",
+            s: "6 compound exercises",
+            c: g.color,
+          },
+          { t: "0:30–0:50", l: "Cardio", s: cardio, c: "#3d8ef0" },
+          {
+            t: "0:50–1:00",
+            l: "Sauna",
+            s: "Heat recovery · stretch & breathe",
+            c: "#f5a623",
+          },
+        ]
+          .map(
+            (r) => `
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="min-width:90px;font-size:11px;color:var(--muted);padding-top:2px">${r.t}</div>
+            <div style="width:3px;border-radius:2px;background:${r.c};align-self:stretch;margin-top:4px;flex-shrink:0"></div>
+            <div><div style="font-size:13px;font-weight:700;color:${r.c}">${r.l}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${r.s}</div></div>
+          </div>`,
+          )
+          .join("")}
+      </div>
+    </div>
+    <div class="label">Exercises</div>
+    ${exs
+      .map(
+        (e, i) => `
+      <div class="ex-row">
+        <div class="ex-num" style="background:${g.color}22;color:${g.color}">${i + 1}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${e.n}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.s} · Rest ${e.r}</div>
+        </div>
+      </div>`,
+      )
+      .join("")}
+    <button class="btn ${done ? "btn-ghost" : "btn-primary"} btn-full mt-16" onclick="markDone('${dateKey}')">
+      ${done ? "✅ Completed" : "Mark as Complete"}
+    </button>
+  `;
+        openModal("workout-modal");
+      }
+
+      function markDone(key) {
+        S.workoutsDone[key] = !S.workoutsDone[key];
+        localStorage.setItem("wdone", JSON.stringify(S.workoutsDone));
+        closeModal("workout-modal");
+        toast(S.workoutsDone[key] ? "Workout logged! 🔥" : "Workout unmarked");
+        render();
+      }
+
+      // ─── AI CALORIE SEARCH ───────────────────────────────────────────────────────
+
+      async function searchFood() {
+        const query = document.getElementById("food-input")?.value?.trim();
+        if (!query) return;
+        S.foodSearch = query;
+        S.aiThinking = true;
+        S.foodResults = null;
+
+        // Show modal with thinking state
+        document.getElementById("food-modal-title").textContent =
+          "Looking up calories…";
+        document.getElementById("food-modal-sub").textContent = query;
+        document.getElementById("food-results").innerHTML = `
+    <div class="ai-bubble">
+      <div class="ai-thinking"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">AI is searching nutrition data…</div>
+    </div>`;
+        openModal("food-modal");
+
+        try {
+          const res = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: 1000,
+              messages: [
+                {
+                  role: "user",
+                  content: `You are a nutrition database. The user searched for: "${query}"
+
+Return ONLY a JSON object (no markdown, no explanation) with this exact structure:
+{
+  "items": [
+    {"name": "Food Name", "portion": "1 cup (240g)", "calories": 250, "protein": 12, "carbs": 30, "fat": 8},
+    {"name": "Food Name (larger portion)", "portion": "2 cups (480g)", "calories": 500, "protein": 24, "carbs": 60, "fat": 16}
+  ],
+  "tip": "One short practical nutrition tip about this food for someone doing body recomposition."
+}
+
+Provide 2-4 common portion sizes for the food. Be accurate with nutrition data.`,
+                },
+              ],
+            }),
+          });
+          const data = await res.json();
+          const text = data.content.map((c) => c.text || "").join("");
+          const clean = text.replace(/```json|```/g, "").trim();
+          S.foodResults = JSON.parse(clean);
+          renderFoodResults();
+        } catch (e) {
+          document.getElementById("food-results").innerHTML = `
+      <div class="ai-bubble" style="border-color:#ff4d2e22">
+        <div style="color:#ff4d2e;font-weight:700;margin-bottom:4px">Couldn't fetch results</div>
+        <div style="font-size:12px;color:var(--muted)">Check your connection and try again.</div>
+      </div>`;
+        }
+      }
+
+      function renderFoodResults() {
+        const r = S.foodResults;
+        if (!r) return;
+        document.getElementById("food-modal-title").textContent =
+          "Select Portion";
+        document.getElementById("food-modal-sub").textContent = S.foodSearch;
+        document.getElementById("food-results").innerHTML = `
+    ${r.items
+      .map(
+        (item, i) => `
+      <div onclick="selectPortion(${i})" style="padding:14px;background:var(--surface2);border-radius:14px;margin-bottom:10px;border:1px solid var(--border);cursor:pointer;transition:border-color 0.15s" id="portion-${i}">
+        <div class="flex justify-between items-center">
+          <div>
+            <div style="font-size:14px;font-weight:700">${item.name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${item.portion}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:22px;font-weight:800;color:var(--red)">${item.calories}</div>
+            <div style="font-size:10px;color:var(--muted)">cal</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:10px">
+          ${[
+            ["P", item.protein, "g", "#3d8ef0"],
+            ["C", item.carbs, "g", "#2ecc71"],
+            ["F", item.fat, "g", "#f5a623"],
+          ]
+            .map(
+              ([l, v, u, c]) => `
+            <div style="flex:1;background:${c}18;border-radius:8px;padding:6px 8px;text-align:center">
+              <div style="font-size:13px;font-weight:700;color:${c}">${v}${u}</div>
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${l === "P" ? "Protein" : l === "C" ? "Carbs" : "Fat"}</div>
+            </div>`,
+            )
+            .join("")}
+        </div>
+      </div>`,
+      )
+      .join("")}
+    <div class="ai-bubble mt-12">
+      <div style="font-size:10px;color:var(--blue);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">💡 Nutrition Tip</div>
+      ${r.tip}
+    </div>
+    <div style="margin-top:12px">
+      <div class="label">Add to meal</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${MEAL_CATS.map(
+          (cat, i) => `
+          <button class="btn btn-ghost btn-sm" id="cat-btn-${i}" onclick="setCat('${cat}',${i})" style="border:1px solid var(--border)">${cat}</button>`,
+        ).join("")}
+      </div>
+    </div>
+    <div id="add-food-btn" class="hidden mt-12">
+      <button class="btn btn-primary btn-full" onclick="addFood()">Add to Log</button>
+    </div>
+  `;
+        S.pendingFood = { item: null, cat: null };
+      }
+
+      function selectPortion(i) {
+        document
+          .querySelectorAll('[id^="portion-"]')
+          .forEach((el) => (el.style.borderColor = "var(--border)"));
+        document.getElementById("portion-" + i).style.borderColor =
+          "var(--red)";
+        S.pendingFood = S.pendingFood || {};
+        S.pendingFood.item = S.foodResults.items[i];
+        checkAddReady();
+      }
+
+      function setCat(cat, i) {
+        document.querySelectorAll('[id^="cat-btn-"]').forEach((el) => {
+          el.style.background = "var(--surface2)";
+          el.style.color = "var(--text)";
+          el.style.borderColor = "var(--border)";
+        });
+        const btn = document.getElementById("cat-btn-" + i);
+        btn.style.background = MEAL_COLORS[i] + "22";
+        btn.style.color = MEAL_COLORS[i];
+        btn.style.borderColor = MEAL_COLORS[i];
+        S.pendingFood = S.pendingFood || {};
+        S.pendingFood.cat = cat;
+        S.pendingFood.catColor = MEAL_COLORS[i];
+        checkAddReady();
+      }
+
+      function checkAddReady() {
+        const btn = document.getElementById("add-food-btn");
+        if (btn && S.pendingFood?.item && S.pendingFood?.cat)
+          btn.classList.remove("hidden");
+      }
+
+      function addFood() {
+        const { item, cat, catColor } = S.pendingFood;
+        const key = todayKey();
+        if (!S.meals[key]) S.meals[key] = [];
+        S.meals[key].push({
+          name: `${item.name} (${item.portion})`,
+          cal: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+          cat,
+          catColor,
+        });
+        saveMeals();
+        closeModal("food-modal");
+        toast(`+${item.calories} cal logged!`);
+        if (document.getElementById("food-input"))
+          document.getElementById("food-input").value = "";
+        render();
+      }
+
+      function deleteFood(idx) {
+        const key = todayKey();
+        S.meals[key].splice(idx, 1);
+        saveMeals();
+        render();
+      }
+
+      // ─── RENDER ──────────────────────────────────────────────────────────────────
+
+      function render() {
+        const el = document.getElementById("screen");
+        if (S.page === "dashboard") el.innerHTML = renderDashboard();
+        else if (S.page === "workout") el.innerHTML = renderWorkout();
+        else if (S.page === "calories") el.innerHTML = renderCalories();
+        else if (S.page === "settings") el.innerHTML = renderSettings();
+      }
+
+      // ── Dashboard ────────────────────────────────────────────────────────────────
+
+      function renderDashboard() {
+        const cal = todayCalories();
+        const pct = Math.min(100, Math.round((cal / S.calorieGoal) * 100));
+        const remaining = Math.max(0, S.calorieGoal - cal);
+        const over = cal > S.calorieGoal;
+        const barColor = over ? "#ff4d2e" : pct > 80 ? "#f5a623" : "#2ecc71";
+
+        const today = new Date().getDay();
+        const todayKey2 = DAY_KEYS[today];
+        const todayGroup = todayKey2 ? GROUPS[todayKey2] : null;
+        const weekDone = Object.values(S.workoutsDone).filter(Boolean).length;
+
+        const meals = todayMeals();
+        const totalP = meals.reduce((a, m) => a + (m.protein || 0), 0);
+
+        return `
+    <div class="page-header">
+      <div class="page-title">ReComp 🔥</div>
+      <div class="page-sub">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
+    </div>
+    <div class="p-20" style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Calorie Ring Summary -->
+      <div class="card">
+        <div class="section">
+          <div class="flex justify-between items-center" style="margin-bottom:14px">
+            <div>
+              <div class="label">Today's Calories</div>
+              <div style="font-size:36px;font-weight:900;letter-spacing:-1px;color:${barColor}">${cal.toLocaleString()}</div>
+              <div style="font-size:13px;color:var(--muted)">of ${S.calorieGoal.toLocaleString()} goal · ${over ? '<span style="color:#ff4d2e">' + (cal - S.calorieGoal) + " over</span>" : '<span style="color:#2ecc71">' + remaining + " left</span>"}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:28px;font-weight:800;color:#3d8ef0">${totalP}g</div>
+              <div style="font-size:11px;color:var(--muted)">protein today</div>
+              <div style="font-size:11px;color:var(--muted)">goal: 185–230g</div>
+            </div>
+          </div>
+          <div class="cal-bar-bg">
+            <div class="cal-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:right">${pct}% of daily goal</div>
+        </div>
+        <div class="section">
+          <button class="btn btn-primary btn-sm" onclick="navigate('calories')" style="width:100%">Log Food</button>
+        </div>
+      </div>
+
+      <!-- Today's Workout -->
+      <div class="card">
+        <div class="section">
+          <div class="label">Today's Workout</div>
+          ${
+            todayGroup
+              ? `
+            <div class="flex justify-between items-center" style="margin-top:4px">
+              <div>
+                <div style="font-size:20px;font-weight:800">${todayGroup.icon} ${todayGroup.label}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:4px">30 min lift · 20 min cardio · 10 min sauna</div>
+              </div>
+              <div style="width:48px;height:48px;border-radius:50%;background:${todayGroup.color}22;border:2px solid ${todayGroup.color};display:flex;align-items:center;justify-content:center;font-size:22px">${todayGroup.icon}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm mt-12" style="width:100%;border:1px solid ${todayGroup.color}44;color:${todayGroup.color}" onclick="openWorkout(${S.week},${today})">View Workout</button>
+          `
+              : `
+            <div style="font-size:16px;font-weight:700;margin-top:4px">😴 Rest Day</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px">Recovery is part of the program.</div>
+          `
+          }
+        </div>
+      </div>
+
+      <!-- This Week Progress -->
+      <div class="card">
+        <div class="section">
+          <div class="flex justify-between items-center">
+            <div class="label">This Week</div>
+            <div style="font-size:12px;color:var(--muted)">${weekDone}/5 workouts</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            ${[1, 2, 3, 4, 5]
+              .map((d) => {
+                const k = DAY_KEYS[d];
+                const g = GROUPS[k];
+                const done = S.workoutsDone[`w${S.week}d${d}`];
+                return `<div style="flex:1;text-align:center;cursor:pointer" onclick="openWorkout(${S.week},${d})">
+                <div style="width:100%;aspect-ratio:1;border-radius:10px;background:${done ? g.color : g.color + "18"};display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid ${done ? g.color : g.color + "33"}">${done ? "✓" : g.icon}</div>
+                <div style="font-size:9px;color:${done ? g.color : "var(--muted)"};margin-top:4px;font-weight:700">${DAY_NAMES[d]}</div>
+              </div>`;
+              })
+              .join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent meals -->
+      ${
+        meals.length > 0
+          ? `
+      <div class="card">
+        <div class="section">
+          <div class="label">Recent Meals</div>
+          ${meals
+            .slice(-3)
+            .reverse()
+            .map(
+              (m) => `
+            <div class="meal-entry">
+              <div class="meal-dot" style="background:${m.catColor || "#888"}"></div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600">${m.name}</div>
+                <div style="font-size:11px;color:var(--muted)">${m.cat}</div>
+              </div>
+              <div style="font-size:14px;font-weight:700">${m.cal} cal</div>
+            </div>`,
+            )
+            .join("")}
+        </div>
+      </div>`
+          : ""
+      }
+
+    </div>`;
+      }
+
+      // ── Workout Page ─────────────────────────────────────────────────────────────
+
+      function renderWorkout() {
+        const today = new Date().getDay();
+        return `
+    <div class="page-header">
+      <div class="page-title">Workout Plan</div>
+      <div class="page-sub">4 weeks · 5 days · 1 hour per session</div>
+    </div>
+    <div style="padding:16px 0 0">
+      <div class="px-20"><div class="label">Select Week</div></div>
+      <div class="pill-row" style="margin-top:8px">
+        ${[0, 1, 2, 3]
+          .map(
+            (w) => `
+          <div class="pill ${S.week === w ? "active" : ""}" style="${S.week === w ? "background:#ff4d2e;border-color:#ff4d2e" : ""}" onclick="setWeek(${w})">
+            Week ${w + 1}${w % 2 === 1 ? " · Alt" : ""}
+          </div>`,
+          )
+          .join("")}
+      </div>
+    </div>
+    <div class="p-20" style="display:flex;flex-direction:column;gap:12px">
+      ${[1, 2, 3, 4, 5]
+        .map((d) => {
+          const key = DAY_KEYS[d];
+          const g = GROUPS[key];
+          const done = S.workoutsDone[`w${S.week}d${d}`];
+          const isToday = d === today;
+          const variant = S.week % 2 === 0 ? "A" : "B";
+          const cardio = CARDIO[(S.week * 5 + d) % CARDIO.length];
+          return `
+          <div class="card" style="border-color:${isToday ? g.color + "55" : "var(--border)"};cursor:pointer" onclick="openWorkout(${S.week},${d})">
+            <div class="section">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-12">
+                  <div style="width:44px;height:44px;border-radius:12px;background:${g.color}18;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${g.icon}</div>
+                  <div>
+                    <div class="flex items-center gap-8">
+                      <div style="font-size:15px;font-weight:800">${DAY_NAMES[d]}</div>
+                      ${isToday ? `<span class="tag" style="background:#ff4d2e22;color:#ff4d2e;font-size:9px">TODAY</span>` : ""}
+                      ${done ? `<span class="tag" style="background:#2ecc7122;color:#2ecc71;font-size:9px">DONE</span>` : ""}
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:${g.color};margin-top:2px">${g.label}</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:2px">${cardio}</div>
+                  </div>
+                </div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </div>
+          </div>`;
+        })
+        .join("")}
+      <div class="card" style="opacity:0.4">
+        <div class="section">
+          <div class="flex items-center gap-12">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px">😴</div>
+            <div>
+              <div style="font-size:15px;font-weight:800">Sat & Sun</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:2px">Rest & Recovery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+      }
+
+      function setWeek(w) {
+        S.week = w;
+        render();
+      }
+
+      // ── Calories Page ────────────────────────────────────────────────────────────
+
+      function renderCalories() {
+        const meals = todayMeals();
+        const cal = todayCalories();
+        const remaining = S.calorieGoal - cal;
+        const pct = Math.min(100, Math.round((cal / S.calorieGoal) * 100));
+        const over = cal > S.calorieGoal;
+        const barColor = over ? "#ff4d2e" : pct > 80 ? "#f5a623" : "#2ecc71";
+        const totalP = meals.reduce((a, m) => a + (m.protein || 0), 0);
+        const totalC = meals.reduce((a, m) => a + (m.carbs || 0), 0);
+        const totalF = meals.reduce((a, m) => a + (m.fat || 0), 0);
+
+        const byCat = {};
+        MEAL_CATS.forEach((c, i) => {
+          byCat[c] = { items: [], color: MEAL_COLORS[i] };
+        });
+        meals.forEach((m, i) => {
+          if (byCat[m.cat]) byCat[m.cat].items.push({ ...m, idx: i });
+        });
+
+        return `
+    <div class="page-header">
+      <div class="page-title">Calorie Log</div>
+      <div class="page-sub">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
+    </div>
+    <div class="p-20" style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Summary card -->
+      <div class="card">
+        <div class="section">
+          <div style="font-size:42px;font-weight:900;letter-spacing:-2px;color:${barColor}">${cal.toLocaleString()}<span style="font-size:16px;font-weight:600;color:var(--muted)"> cal</span></div>
+          <div class="cal-bar-bg" style="margin:12px 0 6px">
+            <div class="cal-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <div class="flex justify-between" style="font-size:12px;color:var(--muted)">
+            <span>0</span>
+            <span style="color:${barColor};font-weight:700">${over ? "+" + (cal - S.calorieGoal) + " over goal" : remaining + " remaining"}</span>
+            <span>${S.calorieGoal.toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="section">
+          <div style="display:flex;gap:10px">
+            ${[
+              ["Protein", totalP + "g", "#3d8ef0"],
+              ["Carbs", totalC + "g", "#2ecc71"],
+              ["Fat", totalF + "g", "#f5a623"],
+            ]
+              .map(
+                ([l, v, c]) => `
+              <div style="flex:1;background:${c}15;border-radius:12px;padding:10px;text-align:center">
+                <div style="font-size:18px;font-weight:800;color:${c}">${v}</div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">${l}</div>
+              </div>`,
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Search -->
+      <div class="card">
+        <div class="section">
+          <div class="label">AI Food Search</div>
+          <div style="display:flex;gap-10px;gap:10px;margin-top:8px">
+            <input class="input" id="food-input" placeholder="e.g. grilled chicken breast, oatmeal, banana…" style="flex:1" onkeydown="if(event.key==='Enter')searchFood()"/>
+            <button class="btn btn-primary" style="flex-shrink:0;padding:12px 16px" onclick="searchFood()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">AI will find calories and macros, then you confirm the portion.</div>
+        </div>
+      </div>
+
+      <!-- Meal categories -->
+      ${MEAL_CATS.map((cat, ci) => {
+        const catData = byCat[cat];
+        const catCal = catData.items.reduce((a, m) => a + m.cal, 0);
+        return `
+          <div class="card">
+            <div class="section">
+              <div class="flex justify-between items-center">
+                <div style="font-size:14px;font-weight:700;color:${catData.color}">${cat}</div>
+                <div style="font-size:13px;color:var(--muted)">${catCal > 0 ? catCal + " cal" : "Nothing logged"}</div>
+              </div>
+              ${
+                catData.items.length > 0
+                  ? `
+                <div style="margin-top:12px;display:flex;flex-direction:column;gap:0">
+                  ${catData.items
+                    .map(
+                      (m) => `
+                    <div class="meal-entry">
+                      <div class="meal-dot" style="background:${catData.color}"></div>
+                      <div style="flex:1">
+                        <div style="font-size:13px;font-weight:600">${m.name}</div>
+                        <div style="font-size:11px;color:var(--muted)">P:${m.protein || 0}g C:${m.carbs || 0}g F:${m.fat || 0}g</div>
+                      </div>
+                      <div style="font-size:14px;font-weight:700;margin-right:10px">${m.cal}</div>
+                      <button onclick="deleteFood(${m.idx})" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1">×</button>
+                    </div>`,
+                    )
+                    .join("")}
+                </div>`
+                  : ""
+              }
+            </div>
+          </div>`;
+      }).join("")}
+
+    </div>`;
+      }
+
+      // ── Settings Page ─────────────────────────────────────────────────────────────
+
+      function renderSettings() {
+        return `
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Personalize your program</div>
+    </div>
+    <div class="p-20">
+      <div class="card">
+        <div class="section">
+          <div class="label">Goals</div>
+          <div class="setting-row" onclick="openModal('goal-modal');document.getElementById('goal-input').value=S.calorieGoal" style="cursor:pointer">
+            <div>
+              <div class="setting-label">Daily Calorie Goal</div>
+              <div class="setting-sub">Recommended: 2,000–2,300 cal</div>
+            </div>
+            <div class="flex items-center gap-8">
+              <div class="setting-val">${S.calorieGoal.toLocaleString()} cal</div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Protein Goal</div>
+              <div class="setting-sub">Based on 230 lb bodyweight</div>
+            </div>
+            <div class="setting-val">185–230g</div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Program Duration</div>
+              <div class="setting-sub">4 weeks rotating</div>
+            </div>
+            <div class="setting-val">30 days</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-16">
+        <div class="section">
+          <div class="label">Program Overview</div>
+          ${[
+            { l: "Current Week", v: `Week ${S.week + 1} of 4` },
+            { l: "Active Days", v: "Mon – Fri" },
+            { l: "Session Length", v: "1 hour" },
+            { l: "Strength", v: "30 min" },
+            { l: "Cardio", v: "20 min" },
+            { l: "Sauna", v: "10 min" },
+          ]
+            .map(
+              (r) => `
+            <div class="setting-row">
+              <div class="setting-label">${r.l}</div>
+              <div class="setting-val">${r.v}</div>
+            </div>`,
+            )
+            .join("")}
+        </div>
+      </div>
+
+      <div class="card mt-16">
+        <div class="section">
+          <div class="label">Data</div>
+          <div class="setting-row" onclick="clearToday()" style="cursor:pointer">
+            <div>
+              <div class="setting-label">Clear Today's Meals</div>
+              <div class="setting-sub">Reset today's food log</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d2e" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </div>
+          <div class="setting-row" onclick="clearWorkouts()" style="cursor:pointer">
+            <div>
+              <div class="setting-label">Reset Workout Log</div>
+              <div class="setting-sub">Clear all completed workouts</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff4d2e" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-16">
+        <div class="section">
+          <div class="label">Install as App</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6">
+            To install on iPhone:<br>
+            1. Open in <strong style="color:var(--text)">Safari</strong><br>
+            2. Tap the <strong style="color:var(--text)">Share</strong> button (box with arrow)<br>
+            3. Tap <strong style="color:var(--text)">"Add to Home Screen"</strong><br>
+            4. Tap <strong style="color:var(--text)">Add</strong> — done!
+          </div>
+        </div>
+      </div>
+
+    </div>`;
+      }
+
+      function clearToday() {
+        if (!confirm("Clear all meals logged today?")) return;
+        delete S.meals[todayKey()];
+        saveMeals();
+        render();
+        toast("Today's meals cleared");
+      }
+      function clearWorkouts() {
+        if (!confirm("Reset all workout completions?")) return;
+        S.workoutsDone = {};
+        localStorage.setItem("wdone", "{}");
+        render();
+        toast("Workout log reset");
+      }
+
+      // ─── INIT ────────────────────────────────────────────────────────────────────
+
+      render();
+
+      // Register service worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      }
+    </script>
+  </body>
+</html>
